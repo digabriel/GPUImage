@@ -262,6 +262,12 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     dispatch_sync(movieWritingQueue, ^{
         if (audioInputReadyCallback == NULL)
         {
+            if (assetWriter.status == AVAssetWriterStatusFailed) {
+                [self cancelRecording];
+                failureBlock(nil);
+                return;
+            }
+            
             [assetWriter startWriting];
         }
     });
@@ -371,6 +377,12 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
             dispatch_sync(movieWritingQueue, ^{
                 if ((audioInputReadyCallback == NULL) && (assetWriter.status != AVAssetWriterStatusWriting))
                 {
+                    if (assetWriter.status == AVAssetWriterStatusFailed) {
+                        [self cancelRecording];
+                        failureBlock(nil);
+                        return;
+                    }
+                    
                     [assetWriter startWriting];
                 }
                 [assetWriter startSessionAtSourceTime:currentSampleTime];
@@ -430,6 +442,12 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
     {
         if( assetWriter.status != AVAssetWriterStatusWriting )
         {
+            if (assetWriter.status == AVAssetWriterStatusFailed) {
+                [self cancelRecording];
+                failureBlock(nil);
+                return;
+            }
+            
             [assetWriter startWriting];
         }
         videoQueue = dispatch_queue_create("com.sunsetlakesoftware.GPUImage.videoReadingQueue", NULL);
@@ -648,6 +666,13 @@ NSString *const kGPUImageColorSwizzlingFragmentShaderString = SHADER_STRING
 
     if (CMTIME_IS_INVALID(startTime))
     {
+        
+        if (assetWriter.status == AVAssetWriterStatusFailed) {
+            [self cancelRecording];
+            failureBlock(nil);
+            return;
+        }
+        
         dispatch_sync(movieWritingQueue, ^{
             if ((videoInputReadyCallback == NULL) && (assetWriter.status != AVAssetWriterStatusWriting))
             {
