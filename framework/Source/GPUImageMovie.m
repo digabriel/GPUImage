@@ -272,31 +272,33 @@
     }
     else
     {
-        while (reader.status == AVAssetReaderStatusReading && (!_shouldRepeat || keepLooping))
-        {
-                [weakSelf readNextVideoFrameFromOutput:readerVideoTrackOutput];
-
-            if ( (readerAudioTrackOutput) && (!audioEncodingIsFinished) )
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^{
+            while (reader.status == AVAssetReaderStatusReading && (!_shouldRepeat || keepLooping))
             {
-                    [weakSelf readNextAudioSampleFromOutput:readerAudioTrackOutput];
-            }
-
-        }
-
-        if (reader.status == AVAssetWriterStatusCompleted) {
+                [weakSelf readNextVideoFrameFromOutput:readerVideoTrackOutput];
                 
-            [reader cancelReading];
-
-            if (keepLooping) {
-                reader = nil;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    [self startProcessing];
-                });
-            } else {
-                [weakSelf endProcessing];
+                if ( (readerAudioTrackOutput) && (!audioEncodingIsFinished) )
+                {
+                    [weakSelf readNextAudioSampleFromOutput:readerAudioTrackOutput];
+                }
+                
             }
-
-        }
+            
+            if (reader.status == AVAssetWriterStatusCompleted) {
+                
+                [reader cancelReading];
+                
+                if (keepLooping) {
+                    reader = nil;
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        [self startProcessing];
+                    });
+                } else {
+                    [weakSelf endProcessing];
+                }
+                
+            }
+        });
     }
 }
 
